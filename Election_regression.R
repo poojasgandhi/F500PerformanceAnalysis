@@ -1,0 +1,15 @@
+setwd("C:/Users/Pooja/Documents/R/Big data/project_election")
+el.rev_R <- read.csv("election_revenue_formatted2_R.csv", header = TRUE)
+el.rev_R$Parent_SIC_code.f <- factor(el.rev_R$Parent_SIC_code)
+is.factor(el.rev_R$Parent_SIC_code.f)
+el.rev_R$Parent_SIC_code.f[1:60]
+attach(el.rev_R)
+lm.fit <- lm(Avg_revenue ~ Parent_SIC_code.f, data = el.rev_R)
+summary(lm.fit)
+setwd("C:/Users/Pooja/Documents/R/Big data/project_election")
+el.rev_D <- read.csv("election_revenue_formatted2_D.csv", header = TRUE)
+el.rev_D$Parent_SIC_code.f <- factor(el.rev_D$Parent_SIC_code)
+el.rev_D$Parent_SIC_code.f[1:60]
+attach(el.rev_D)
+lm.fit <- lm(Avg_revenue ~ Parent_SIC_code.f, data = el.rev_D)
+summary(lm.fit)

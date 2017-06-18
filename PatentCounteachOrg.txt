@@ -1,0 +1,38 @@
+# Zipped patent files from 2000 to 2015 are stored in the below folder in local /users/pgandhi8/patentData2000_2015/patBiblio2000_1h2015 
+
+# Unzip all the files in above mentioned folder and store it in folder called unzipped_data in local 
+cd patentData2000_2015/ 
+cd patBiblio2000_1h2015/ 
+for i in $(ls *.zip); do echo $i; unzip $i -d /users/pgandhi8/unzipped_data; done 
+
+# Create folders for project and unzipped data within it in your HDFS system 
+hadoop fs -mkdir hdfs-project-part1 
+hadoop fs -mkdir hdfs-project-part1/unzipped_patent_data 
+
+# Copy all the unzipped files from local to Hadoop HDFS so that we can run GREP on it 
+cd unzipped_data/ 
+hadoop fs -put ./* ./ hdfs-project-part1/unzipped_patent_data 
+
+# Create a folder on your HDFS to store only the xml and sgml file 
+Note: Each zip folder contains and xml or sgml, txt and html file. We need only xml or sgml files to run Grep 
+hadoop fs -mkdir hdfs-project-part1/unzipped_patent_data_xml_sgml 
+hadoop fs -mv hdfs-project-part1/unzipped_patent_data/*.xml hdfs-project-part1/unzipped_patent_data_xml_sgml 
+hadoop fs -mv hdfs-project-part1/unzipped_patent_data/*.sgml hdfs-project-part1/unzipped_patent_data_xml_sgml 
+# Run Hadoop Grep for ‘orgname’ on the folder containing the unzipped xml and sgml files and store the output in the all-grep-out_xml_sgml folder 
+Note: All patent assignees have been stored under <orgname> 
+hadoop org.apache.hadoop.examples.Grep hdfs-project-part1/unzipped_patent_data_xml_sgml hdfs-project-part1/all-grep-out_xml_sgml ".*orgname.*" 
+
+# Create a folder for project on your local 
+mkdir local-project-part1 
+
+# Copy the output of Grep stored in the part-r-00000 file in the newly created folder in your local 
+hadoop fs -get hdfs-project-part1/all-grep-out_xml_sgml/part-r-00000 local-project-part1/part-r-00000 
+
+# Remove the <orgname> and </orgname> tags and stored the output in a file named 001-removed_orgname 
+perl -pne "s;<orgname>(.*)<\/orgname>;\1;g" part-r-00000 > 001-removed_orgname 
+
+# Convert the output obtained from previous step into lower case and store it in a file named 002-converted_to_lowercase 
+perl -nle 'print lc' 001-removed_orgname > 002-converted_to_lowercase 
+
+# Remove all non-alphanumeric characters from the output obtained from previous step and store it in a file named 003-removed-nonalphanumeric 
+perl -pne "s;[^a-z0-9\s];;g" 002-converted_to_lowercase > 003-removed-nonalphanumeric 
